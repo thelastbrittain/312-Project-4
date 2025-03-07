@@ -1,0 +1,8 @@
+/.mypy_cache
+/.pytest_cache
+/.venv
+/.vscode
+/__pycache__
+/results.json
+/test_files
+/test_utils.py
