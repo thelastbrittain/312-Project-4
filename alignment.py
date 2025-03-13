@@ -57,6 +57,58 @@ def alignUnrestricted(
     final_cost: float = final_cell[0]
     return (final_cost, final_seq1, final_seq2)
 
+
+def alignBanded(
+        seq1: str,
+        seq2: str,
+        match_award=-3,
+        indel_penalty=5,
+        sub_penalty=1,
+        banded_width=-1,
+        gap='-'
+) -> tuple[float, str | None, str | None]:
+    ## base case 
+
+    # make sure banded width is less than length of sequences
+    
+    table: dict[tuple[int, int], tuple[float, tuple[int,int] | None]] = dict() # key = location, value = (cost, location). Location = (i, j)
+    list_seq1 = list(seq1)
+    list_seq2 = list(seq2)
+
+    # fill columns ## banded width 
+    table[(0, 0)] = (0, None)
+    for i in range(1, banded_width + 1):
+        table[(i, 0)] = (i * indel_penalty, (i - 1, 0))
+
+    # fill rows  ## banded width
+    for j in range(1, banded_width + 1):
+        table[(0,j)] = (j * indel_penalty, (0, j -1))
+
+    # fill in whole table
+    for i in range(1,len(seq1) + 1):
+        for j in range(bandedMinimum(i, banded_width), bandedMaximum(i, banded_width, len(seq2))):  # change for banded width
+            table[(i, j)] = calcCostAndPrev(i,j, table, match_award, indel_penalty, sub_penalty, list_seq1, list_seq2)
+    
+    final_cell: tuple[float, tuple[int,int] | None] = table[(len(seq1), len(seq2))]
+    final_seq1, final_seq2 = findFinalStrings(list_seq1, list_seq2, table)
+    final_cost: float = final_cell[0]
+    return (final_cost, final_seq1, final_seq2)
+
+def bandedMinimum(i: int, banded_width: int) -> int:
+    min = i - banded_width
+    if min < 1:
+        return 1
+    else:
+        return min
+
+def bandedMaximum(i: int, banded_width: int, length_seq_2: int) -> int: # finish this
+    max = i + banded_width + 1
+    if max > length_seq_2 + 1:
+        return length_seq_2 + 1
+    else: 
+        return max
+
+
 def findFinalStrings(list_seq1: list[str], list_seq2: list[str], table: dict[tuple[int, int], tuple[float, tuple[int,int] | None]]) -> tuple[str, str]:
     # get final cell
     final_sequence1: list[str] = []
@@ -123,14 +175,3 @@ def diff(i: int, j: int, match_award: int, sub_penalty: int, table: dict[tuple[i
         return match_award
     else:
         return sub_penalty
-
-def alignBanded(
-        seq1: str,
-        seq2: str,
-        match_award=-3,
-        indel_penalty=5,
-        sub_penalty=1,
-        banded_width=-1,
-        gap='-'
-) -> tuple[float, str | None, str | None]:
-    raise NotImplementedError
