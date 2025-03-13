@@ -67,8 +67,6 @@ def alignBanded(
         banded_width=-1,
         gap='-'
 ) -> tuple[float, str | None, str | None]:
-    ## base case 
-
     # make sure banded width is less than length of sequences
     
     table: dict[tuple[int, int], tuple[float, tuple[int,int] | None]] = dict() # key = location, value = (cost, location). Location = (i, j)
@@ -121,22 +119,22 @@ def findFinalStrings(list_seq1: list[str], list_seq2: list[str], table: dict[tup
 
         # if up, keep left (seq1), add dash to top (seq2)
         if prev_location[1] == current_location[1]: # if we didn't move columns (we must have moved rows, so we came from up)
-            final_sequence1.insert(0, list_seq1[current_location[0] - 1])
-            final_sequence2.insert(0,"-")
+            final_sequence1.append(list_seq1[current_location[0] - 1])
+            final_sequence2.append("-")
         elif prev_location[0] == current_location[0]: # if we didn't move rows, we must have moved columns, so we came from left
              # if left, add dash to left (seq1), keep top (seq2)
-            final_sequence2.insert(0, list_seq2[current_location[1] - 1])
-            final_sequence1.insert(0,"-")
+            final_sequence2.append(list_seq2[current_location[1] - 1])
+            final_sequence1.append("-")
         else:   # if diaganol, then no changes
-            final_sequence1.insert(0, list_seq1[current_location[0] - 1])
-            final_sequence2.insert(0, list_seq2[current_location[1] - 1])
+            final_sequence1.append(list_seq1[current_location[0] - 1])
+            final_sequence2.append(list_seq2[current_location[1] - 1])
 
         # go to next one
         current_location = prev_location
         prev_location = table[current_location][1] 
     
-    final1 = ''.join(final_sequence1)
-    final2 = ''.join(final_sequence2)
+    final1 = ''.join(final_sequence1[::-1])
+    final2 = ''.join(final_sequence2[::-1])
     print(final1)
     print(final2)
 
@@ -146,6 +144,7 @@ def findFinalStrings(list_seq1: list[str], list_seq2: list[str], table: dict[tup
 def calcCostAndPrev(i: int, j: int, table: dict[tuple[int, int], tuple[float, tuple[int,int] | None]], match_award: int,
         indel_penalty: int,
         sub_penalty: int, list_seq1: list[str], list_seq2: list[str]) -> tuple[float, tuple[int, int]]:
+    
     costLeft = float('inf')
     costUp = float('inf')
     costDiagonal =  float('inf')
@@ -154,11 +153,11 @@ def calcCostAndPrev(i: int, j: int, table: dict[tuple[int, int], tuple[float, tu
     diaganol = (i-1, j-1)
 
     # calculate costs
-    if left in table.keys():
-        costLeft = indel_penalty + table[left][0]
+    if left in table.keys(): # O(1)
+        costLeft = indel_penalty + table[left][0] # O(1)
     if up in table.keys():
         costUp = indel_penalty + table[up][0]    
-    costDiagonal = diff(i, j, match_award, sub_penalty, table, list_seq1, list_seq2) +  table[diaganol][0]
+    costDiagonal = diff(i, j, match_award, sub_penalty, table, list_seq1, list_seq2) +  table[diaganol][0] # O(1)
     
     # return lowest cost
     if costDiagonal <= costUp and costDiagonal <= costLeft:
